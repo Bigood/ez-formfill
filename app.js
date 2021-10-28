@@ -7,10 +7,12 @@ const ProxyList = require('free-proxy');
 const puppeteer = require('puppeteer');
 //https://www.npmjs.com/package/dotenv
 const dotenv = require('dotenv').config();
+//https://caolan.github.io/async/v3/docs.html#times
+const timesLimit = require('async/timesLimit');
 
 var faker = require('faker/locale/' + process.env.FAKER_LOCALE || "fr");
 
-(async () => {
+async function fillForm (iterationNumber, nextIteration) {
   const proxyList = new ProxyList();
   let args = [];
 
@@ -29,6 +31,7 @@ var faker = require('faker/locale/' + process.env.FAKER_LOCALE || "fr");
     // Use proxy for localhost URLs
     args.push('--proxy-bypass-list=<-loopback>')
   }
+  log.warn('Iteration #', iterationNumber);
   const browser = await puppeteer.launch({
     args,
   });
@@ -72,4 +75,16 @@ var faker = require('faker/locale/' + process.env.FAKER_LOCALE || "fr");
   log.warn('Message de confirmation :', messageFin);
 
   await browser.close();
-})();
+  nextIteration(null, { iterationNumber, firstName, lastName, email, phone, zip })
+}
+
+
+timesLimit(process.env.ITERATIONS || 1, process.env.PARALLEL_ITERATIONS || 2,
+  function (n, next) {
+    fillForm(n, next);
+  }, function(err, result) {
+  if(err)
+    log.error(err)
+  else 
+    log.warn("Resultat: ", result)
+})
