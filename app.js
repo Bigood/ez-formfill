@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 //https://github.com/pimterry/loglevel
 var log = require('loglevel');
 //https://www.npmjs.com/package/free-proxy
@@ -85,6 +87,11 @@ timesLimit(process.env.ITERATIONS || 1, process.env.PARALLEL_ITERATIONS || 2,
   }, function(err, result) {
   if(err)
     log.error(err)
-  else 
-    log.warn("Resultat: ", result)
+  else {
+
+    fs.appendFile('out.log', JSON.stringify(result, null, 2), function (err) {
+      if (err) throw err;
+      log.warn('Résultat sauvegardé dans out.log');
+    });
+  }
 })
