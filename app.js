@@ -14,9 +14,19 @@ const timesLimit = require('async/timesLimit');
 
 var faker = require('faker/locale/' + process.env.FAKER_LOCALE || "fr");
 
+function sleepRandom() {
+  const delay = (Math.random()
+    * (process.env.RANDOM_SECONDS_TIMEOUT_BETWEEN_ITERATION || 180) //Delta aléatoire
+    + process.env.MIN_SECONDS_TIMEOUT_BETWEEN_ITERATION || 0) //Minimum de secondes à attendre
+    * 1000 //ms
+  log.warn("Pause de", delay, "ms")
+  return new Promise(resolve => setTimeout(resolve, delay));
+}
+
 async function fillForm (iterationNumber, nextIteration) {
   const proxyList = new ProxyList();
   let args = [];
+  const date = new Date();
 
   if (process.env.USE_PROXY_GENERATOR){
     // More on proxying:
@@ -38,6 +48,7 @@ async function fillForm (iterationNumber, nextIteration) {
     args,
   });
   const page = await browser.newPage();
+  log.warn('Accès à la page', page.url());
   await page.goto(process.env.URL, {
     waitUntil: 'networkidle2', //https://github.com/puppeteer/puppeteer/blob/v10.4.0/docs/api.md#pagegotourl-options
   });
@@ -48,7 +59,7 @@ async function fillForm (iterationNumber, nextIteration) {
   var phone = faker.phone.phoneNumber("06########"); // 0602020202
   var zip = faker.address.zipCode("#####"); // 23300
   
-  log.warn('Profil : ', { firstName, lastName, email, phone, zip });
+  log.warn('Profil : ', { firstName, lastName, email, phone, zip, date });
 
   try {
     // await page.waitForSelector("#cf-error-details", {timeout: 1000})
@@ -70,14 +81,17 @@ async function fillForm (iterationNumber, nextIteration) {
   await page.keyboard.press('Enter');
   
   await page.waitForNavigation();
-  log.warn('Navigation à la page ', page.url());
+  log.warn('Après formulaire :', page.url());
   
   await page.waitForSelector("#flash-share", {visible : true, timeout: 4000})
   let messageFin = await page.evaluate(() => document.body.querySelector("#flash-share h1").innerText);
   log.warn('Message de confirmation :', messageFin);
 
   await browser.close();
-  nextIteration(null, { iterationNumber, firstName, lastName, email, phone, zip })
+  
+  //Timeout pour diluer les requêtes
+  await sleepRandom()
+  nextIteration(null, { iterationNumber, firstName, lastName, email, phone, zip, date })
 }
 
 
