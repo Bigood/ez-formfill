@@ -41,7 +41,7 @@ var faker = require('faker');
   var firstName = faker.name.firstName(); // Rowan 
   var lastName = faker.name.lastName(); // Nikolaus
   var email = faker.internet.email(); // Kassandra.Haley@erich.biz
-  var phone = faker.phone.phoneNumber(); // 0202020202
+  var phone = faker.phone.phoneNumber("06########"); // 0602020202
   var zip = faker.address.zipCode(); // 23300
   
   log.warn('Profil : ', { firstName, lastName, email, phone, zip });
