@@ -8,8 +8,7 @@ const puppeteer = require('puppeteer');
 //https://www.npmjs.com/package/dotenv
 const dotenv = require('dotenv').config();
 
-var faker = require('faker');
-
+var faker = require('faker/locale/' + process.env.FAKER_LOCALE || "fr");
 
 (async () => {
   const proxyList = new ProxyList();
@@ -42,7 +41,7 @@ var faker = require('faker');
   var lastName = faker.name.lastName(); // Nikolaus
   var email = faker.internet.email(); // Kassandra.Haley@erich.biz
   var phone = faker.phone.phoneNumber("06########"); // 0602020202
-  var zip = faker.address.zipCode(); // 23300
+  var zip = faker.address.zipCode("#####"); // 23300
   
   log.warn('Profil : ', { firstName, lastName, email, phone, zip });
 
